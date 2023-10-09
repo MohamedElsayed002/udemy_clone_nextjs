@@ -19,20 +19,21 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 model Course {
-  id       String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId String
-  title String
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  title       String
   description String?
-  imageURL String?
-  price Float?
+  imageURL    String?
+  price       Float?
   isPublished Boolean @default(false)
 
   categoryId String?
-  category Category? @relation(fields: [categoryId] , references: [id])
+  category   Category? @relation(fields: [categoryId], references: [id])
 
+  chapters    Chapter[]
   attachments Attachment[]
+  purchases Purchase[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,24 +41,91 @@ model Course {
   @@index([categoryId])
 }
 
-
 model Category {
-      id       String    @id @default(auto()) @map("_id") @db.ObjectId
-      name String @unique
-      courses Course[]
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  name    String   @unique
+  courses Course[]
 }
 
 model Attachment {
-    id       String    @id @default(auto()) @map("_id") @db.ObjectId
-    name String
-    url String 
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  url  String
 
-    courseId String
-    course Course @relation(fields: [courseId] , references: [id] , onDelete : Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([courseId])
+  @@index([courseId])
+}
+
+model Chapter {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  videoURL    String?
+  position    Int
+  isPublished Boolean @default(false)
+  isFree      Boolean @default(false)
+
+  muxData MuxData?
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  userProgress UserProgress[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model MuxData {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  chaptedId  String  @unique
+  assetId    String
+  playbackId String?
+
+  chapter Chapter @relation(fields: [chaptedId], references: [id], onDelete: Cascade)
+}
+
+model UserProgress {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String
+
+  chaptedId   String
+  chapter     Chapter @relation(fields: [chaptedId], references: [id])
+  isCompleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, chaptedId])
+  @@index([chaptedId])
+}
+
+model Purchase {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String
+  courseId String
+  course Course @relation(fields: [courseId] , references: [id] , onDelete : Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  @@index([courseId])
+
 }
 
 
+model StripeCustomer {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String @unique
+
+    stripeCustomerId String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt()
+}
