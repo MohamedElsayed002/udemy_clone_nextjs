@@ -4,11 +4,14 @@ import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { db } from '@/lib/db'
 import Link from "next/link";
-import { ArrowLeft, Eye, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, Eye, LayoutDashboard, Video } from "lucide-react";
 import { IconBadge } from "@/components/icon-badge";
 import ChapterDescriptionForm from "./_components/chapter-description-form";
 import { ChapterTitleForm } from "./_components/chapter-title-form";
 import ChapterAccessForm from "./_components/chapter-access-form";
+import ChapterVideoForm from "./_components/chapter-video-form";
+import { ChapterActions } from "./_components/chapter-actions";
+import { Banner } from "@/components/banner";
 
 const ChapterIdPage = async ({
     params
@@ -42,8 +45,18 @@ const ChapterIdPage = async ({
     const completionText = `(${completedFields}/${totalFields})`
 
 
+    const isComplete = requiredFields.every(Boolean)
+
+
 
     return (
+        <>
+        {!chapter?.isPublished && (
+            <Banner
+                variant="warning"
+                label="This chapter is unpublished. It will not be visible in the course"
+            />
+        )}
         <div className="p-6">
             <div className="flex items-center justify-between">
                 <div className="w-full">
@@ -63,6 +76,12 @@ const ChapterIdPage = async ({
                                 Complete all fields {completionText}
                             </span>
                         </div>
+                        <ChapterActions
+                                disabled={!isComplete}
+                                courseId={params.courseId}
+                                chapterId={params.chapterId}
+                                isPublished={chapter?.isPublished}
+                        />
                     </div>
                 </div>
             </div>
@@ -96,8 +115,20 @@ const ChapterIdPage = async ({
                         />
                     </div>
                 </div>
+                <div>
+                    <div className="flex items-center gap-x-2">
+                        <IconBadge icon={Video} />
+                        <h2 className="text-xl">Add a video</h2>
+                    </div>
+                    <ChapterVideoForm
+                        initialData={chapter}
+                        courseId={params.courseId}
+                        chapterId={params.chapterId}
+                    />
+                </div>
             </div>
         </div>
+        </>
     )
 }
 
